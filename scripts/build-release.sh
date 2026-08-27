@@ -37,7 +37,7 @@ for file in "${required[@]}"; do
     fi
 done
 
-# Reconstruct and integrity-check the exact canonical application source.
+# Reconstruct and integrity-check the canonical application source for this tag.
 bash "$ROOT/assemble-source.sh" "$STAGE/exebridge.py"
 
 install -m 0755 "$ROOT/install.sh" "$STAGE/install.sh"
@@ -52,6 +52,9 @@ install -m 0644 "$ROOT/LICENSE" "$STAGE/LICENSE"
 if [[ -f "$ROOT/SECURITY.md" ]]; then
     install -m 0644 "$ROOT/SECURITY.md" "$STAGE/SECURITY.md"
 fi
+if [[ -f "$ROOT/CODE_OF_CONDUCT.md" ]]; then
+    install -m 0644 "$ROOT/CODE_OF_CONDUCT.md" "$STAGE/CODE_OF_CONDUCT.md"
+fi
 
 # Include release provenance when present.
 if [[ -f "$ROOT/docs/releases/${VERSION}-manifest.json" ]]; then
@@ -59,7 +62,31 @@ if [[ -f "$ROOT/docs/releases/${VERSION}-manifest.json" ]]; then
     install -m 0644 "$ROOT/docs/releases/${VERSION}-manifest.json" "$STAGE/docs/releases/${VERSION}-manifest.json"
 fi
 
-# Record the hashes of files actually shipped in this package.
+# GitHub-built release packages need a root manifest for ExeBridge's verified updater.
+STAGE="$STAGE" VERSION="$VERSION" python3 - <<'PY'
+import hashlib
+import json
+import os
+from pathlib import Path
+
+stage = Path(os.environ["STAGE"])
+files = {}
+for path in sorted(p for p in stage.rglob("*") if p.is_file()):
+    rel = path.relative_to(stage).as_posix()
+    if rel in {"manifest.json", "SHA256SUMS"}:
+        continue
+    files[rel] = hashlib.sha256(path.read_bytes()).hexdigest()
+
+manifest = {
+    "name": "ExeBridge",
+    "version": os.environ["VERSION"],
+    "release_channel": "github-release",
+    "files": files,
+}
+(stage / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+PY
+
+# Record the hashes of every file actually shipped in this package.
 (
     cd "$STAGE"
     find . -type f ! -name SHA256SUMS -print0 \

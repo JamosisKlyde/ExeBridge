@@ -1,19 +1,16 @@
-# Canonical ExeBridge 0.3.0 source
+# Canonical ExeBridge 0.4.0 source
 
-The exact tested `exebridge.py` from the ExeBridge 0.3.0 release is stored here as gzip-compressed, Base64-encoded text shards so GitHub's text-only connector can preserve the original bytes exactly.
+ExeBridge keeps the previously verified 0.3.0 source shards as its immutable base and applies the reviewed deterministic `scripts/patch-0.4.0.py` update to reconstruct the 0.4.0 source.
 
-The installer handles reconstruction automatically. To reconstruct it manually from the repository root:
+`assemble-source.sh` verifies both stages:
+
+- Verified 0.3.0 base SHA-256: `1ea9474b55f5c569caa62bf3b3e4294a7cc2d82d824f6885fcdf782a62c0c26a`
+- Final 0.4.0 SHA-256: `3aed3ff04b6f43ae79757d0ca88c7a058550566be8caf5ccbfe6ca8f49cdfeae`
+
+To reconstruct the final source from the repository root:
 
 ```bash
 bash assemble-source.sh
 ```
 
-Expected SHA-256 for the reconstructed `exebridge.py`:
-
-```text
-1ea9474b55f5c569caa62bf3b3e4294a7cc2d82d824f6885fcdf782a62c0c26a
-```
-
-`assemble-source.sh` refuses to install the reconstructed source if this checksum does not match.
-
-The four `part-*` files should be treated as one source artifact. Do not edit an individual shard directly; reconstruct `exebridge.py`, make the intended source changes, then regenerate the compressed shards and update the expected checksum.
+The assembler refuses to produce/install the source if either integrity check fails. This keeps release provenance explicit: 0.4.0 is the verified 0.3.0 base plus the multi-distro patch stored in the repository.
