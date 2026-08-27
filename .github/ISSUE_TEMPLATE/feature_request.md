@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Suggest an ExeBridge improvement
- title: "[Feature] "
+title: "[Feature] "
 labels: enhancement
 assignees: ''
 ---
