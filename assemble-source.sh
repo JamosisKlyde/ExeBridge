@@ -3,7 +3,7 @@ set -euo pipefail
 
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PART_DIR="$HERE/src/source"
-EXPECTED_SHA256="1ea9474b55f5c569caa62bf3b3e4294a7cc2d82d824f6885fcdf782a62c0c26a"
+EXPECTED_SHA256="003140c03e5a2aa4203c42547c18a3a62545b6ee7560606d27cb932d8b88a389"
 OUTPUT="${1:-$HERE/exebridge.py}"
 TMP="$(mktemp)"
 trap 'rm -f "$TMP"' EXIT
@@ -25,5 +25,5 @@ fi
 
 mkdir -p "$(dirname -- "$OUTPUT")"
 install -m 0755 "$TMP" "$OUTPUT"
-echo "Reconstructed ExeBridge 0.3.0 source: $OUTPUT"
+echo "Reconstructed ExeBridge 0.4.0 source: $OUTPUT"
 echo "SHA-256: $actual"

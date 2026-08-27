@@ -1,6 +1,6 @@
-# Canonical ExeBridge 0.3.0 source
+# Canonical ExeBridge 0.4.0 source
 
-The exact tested `exebridge.py` from the ExeBridge 0.3.0 release is stored here as gzip-compressed, Base64-encoded text shards so GitHub's text-only connector can preserve the original bytes exactly.
+The canonical `exebridge.py` for ExeBridge 0.4.0 is stored here as gzip-compressed, Base64-encoded text shards so the GitHub text connector can preserve the source bytes exactly.
 
 The installer handles reconstruction automatically. To reconstruct it manually from the repository root:
 
@@ -11,9 +11,9 @@ bash assemble-source.sh
 Expected SHA-256 for the reconstructed `exebridge.py`:
 
 ```text
-1ea9474b55f5c569caa62bf3b3e4294a7cc2d82d824f6885fcdf782a62c0c26a
+003140c03e5a2aa4203c42547c18a3a62545b6ee7560606d27cb932d8b88a389
 ```
 
 `assemble-source.sh` refuses to install the reconstructed source if this checksum does not match.
 
-The four `part-*` files should be treated as one source artifact. Do not edit an individual shard directly; reconstruct `exebridge.py`, make the intended source changes, then regenerate the compressed shards and update the expected checksum.
+The five `part-*` files must be treated as one source artifact. Do not edit a shard directly. Reconstruct `exebridge.py`, make the intended source changes, compile/test it, regenerate all shards, and update the expected checksum.

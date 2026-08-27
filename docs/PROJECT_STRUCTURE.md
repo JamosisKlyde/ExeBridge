@@ -1,27 +1,26 @@
 # ExeBridge Project Structure
 
-The repository is organized around the tested ExeBridge 0.3.0 application and its Fedora/KDE installation tooling.
+The repository is organized around ExeBridge 0.4.0 with Fedora, Ubuntu, and Arch Linux support.
 
 ```text
 ExeBridge/
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
-│   ├── workflows/
-│   │   └── ci.yml
-│   └── pull_request_template.md
+│   └── workflows/
+│       ├── ci.yml
+│       └── release-packages.yml
 ├── assets/
-│   └── README.md
 ├── docs/
 │   ├── releases/
-│   │   └── 0.3.0-manifest.json
+│   ├── DISTRIBUTION_SUPPORT.md
 │   └── PROJECT_STRUCTURE.md
+├── scripts/
+│   └── build-release.sh
 ├── src/
-│   ├── source/
-│   │   ├── README.md
-│   │   └── exebridge.py.gz.b64.part-00 ... part-03
-│   └── README.md
+│   └── source/
+│       ├── README.md
+│       └── exebridge.py.gz.b64.part-*
 ├── tests/
-│   └── README.md
 ├── assemble-source.sh
 ├── bootstrap_umu.sh
 ├── install.sh
@@ -29,6 +28,7 @@ ExeBridge/
 ├── uninstall.sh
 ├── exebridge.svg
 ├── CHANGELOG.md
+├── CODE_OF_CONDUCT.md
 ├── CONTRIBUTING.md
 ├── SECURITY.md
 ├── LICENSE
@@ -38,15 +38,23 @@ ExeBridge/
 
 ## Application source
 
-The exact tested 0.3.0 `exebridge.py` is compressed and split into Base64 text shards under `src/source/`. This is a transport representation used to preserve the original source bytes through the GitHub text connector.
+The canonical 0.4.0 `exebridge.py` is compressed and split into Base64 text shards under `src/source/`.
 
-`assemble-source.sh` concatenates, decodes, decompresses, and SHA-256 verifies those shards before producing `exebridge.py`. The expected hash is:
+`assemble-source.sh` concatenates, decodes, decompresses, and SHA-256 verifies those shards before producing `exebridge.py`.
+
+Expected source SHA-256:
 
 ```text
-1ea9474b55f5c569caa62bf3b3e4294a7cc2d82d824f6885fcdf782a62c0c26a
+003140c03e5a2aa4203c42547c18a3a62545b6ee7560606d27cb932d8b88a389
 ```
 
-`install.sh` and `update.sh` perform this reconstruction automatically when a root-level `exebridge.py` is not present.
+`install.sh` and `update.sh` reconstruct the source automatically when a root-level `exebridge.py` is not present.
+
+## Distribution layer
+
+The application supports `Fedora`, `Ubuntu`, and `Arch` distro modes. Fedora is the default/fallback. `install.sh` selects the appropriate package manager and writes the initial distro mode without overwriting existing ExeBridge application settings.
+
+See `docs/DISTRIBUTION_SUPPORT.md` for the dependency matrix.
 
 ## Installation path
 
@@ -62,12 +70,12 @@ with its launcher at:
 ~/.local/bin/exebridge
 ```
 
-and KDE desktop integration under the user's local applications/icons directories.
+Desktop integration is installed beneath the user's local applications and icon directories.
 
 ## CI
 
-`.github/workflows/ci.yml` verifies that the source shards reconstruct to the expected SHA-256, compile with Python, and that the shell scripts pass syntax validation.
+`.github/workflows/ci.yml` verifies source reconstruction, the source SHA-256, Python compilation, shell syntax, and presence of all three distribution modes.
 
-## Release provenance
+## Releases
 
-`docs/releases/0.3.0-manifest.json` preserves the manifest from the original 0.3.0 local release package. The current GitHub installer scripts differ from the original packaged scripts where necessary to support repository-based source reconstruction; the application source itself is preserved byte-for-byte.
+`scripts/build-release.sh` creates `.zip`, `.tar.gz`, and SHA-256 release assets from an exact version tag. `.github/workflows/release-packages.yml` attaches those assets to tagged GitHub releases.

@@ -1,17 +1,32 @@
 # ExeBridge
 
-> Run Windows `.exe` and `.msi` applications on Fedora KDE through Proton/UMU without hand-managing Wine prefixes.
+> Run Windows `.exe` and `.msi` applications on Fedora, Ubuntu, and Arch Linux through Proton/UMU without hand-managing Wine prefixes.
 
-**Current release source: 0.3.0**
+**Current source version: 0.4.0**
 
 ExeBridge is a PyQt6 desktop front-end that gives Windows programs isolated compatibility environments, per-app launch settings, logs, desktop integration, repair tools, snapshots, and multiple Proton/UMU runner options.
 
+## Distribution support
+
+ExeBridge 0.4.0 adds three first-class Linux distribution modes:
+
+| Mode | Package manager | Notes |
+|---|---|---|
+| **Fedora — default** | `dnf` | Default/fallback profile and the original ExeBridge target |
+| **Ubuntu** | `apt` | Enables `i386` packages on x86-64 for 32-bit Vulkan compatibility |
+| **Arch Linux** | `pacman` | Uses Arch packages; `[multilib]` is needed for 32-bit Vulkan/GameMode packages |
+
+The installer auto-detects the host when it recognizes one of these families. If detection is inconclusive, ExeBridge falls back to **Fedora mode**.
+
+The application also has a persistent **Distribution mode** selector, so you can switch the package/diagnostic profile manually without changing your Windows-app settings.
+
 ## Highlights
 
-- Launch `.exe` and `.msi` files from ExeBridge or **Dolphin → Open With → ExeBridge**
+- **Fedora, Ubuntu, and Arch Linux modes**
+- Launch `.exe` and `.msi` files from ExeBridge or through desktop file-manager integration
 - Isolated Proton/Wine prefix per application, with managed-prefix reuse
 - **App Library** with saved programs, quick load/launch, and automatic registration after successful launches
-- **Standard**, **Gaming**, **Legacy / OpenGL**, and **Debug** launch modes
+- **Standard**, **Gaming**, **Legacy / OpenGL**, **Managed / .NET**, and **Debug** compatibility modes
 - **Runner Manager** for rolling UMU/GE and installed `compatibilitytools.d` runners
 - Per-app WineD3D, GameMode, Esync, Fsync, Protonfixes, runner, and isolation controls
 - **Fix & Retry** compatibility recipes with executable-fingerprint memory
@@ -19,10 +34,11 @@ ExeBridge is a PyQt6 desktop front-end that gives Windows programs isolated comp
 - Post-installer executable discovery for MSI/setup-style installers
 - Built-in PE icon extraction and Windows-icon desktop shortcuts
 - Optional **Restricted filesystem mode** using Bubblewrap, with optional network isolation
+- Distro-aware 32-bit graphics dependency diagnostics
 - User-local UMU bootstrap/repair
 - No `sudo` or `pkexec` during ordinary application launches
 
-## Install on Fedora / Fedora KDE
+## Install
 
 Clone the repository:
 
@@ -33,30 +49,62 @@ chmod +x install.sh
 ./install.sh
 ```
 
-Or download the repository ZIP from GitHub, extract it, open Konsole in that directory, and run:
+Or download the latest release ZIP, extract it, open a terminal in that directory, and run:
 
 ```bash
 chmod +x install.sh
 ./install.sh
 ```
 
-The installer requests administrator authentication only for Fedora packages such as PyQt6, GameMode, Winetricks, Bubblewrap, and graphics/runtime dependencies. ExeBridge itself is then installed into your user account.
+### Force a distribution mode
 
-The repository preserves the exact tested ExeBridge 0.3.0 Python source as verified compressed text shards. `install.sh` reconstructs it automatically and refuses to install it unless its SHA-256 is:
+Normally you do not need this because the installer auto-detects supported systems. To override detection:
 
-```text
-1ea9474b55f5c569caa62bf3b3e4294a7cc2d82d824f6885fcdf782a62c0c26a
+```bash
+./install.sh --distro fedora
+./install.sh --distro ubuntu
+./install.sh --distro arch
 ```
+
+Administrator authentication is used only to install system dependencies. ExeBridge itself is installed into your user account.
+
+### Arch multilib note
+
+On Arch, 32-bit Windows applications and games generally need the `[multilib]` repository enabled so `lib32-*` Vulkan/GameMode packages can be installed. You also need the 32-bit Vulkan driver matching your GPU.
 
 ## Start ExeBridge
 
-Open **ExeBridge** from KDE's application menu, or run:
+Open **ExeBridge** from your desktop application menu, or run:
 
 ```bash
 ~/.local/bin/exebridge
 ```
 
-Supported Windows executable MIME types are registered with the desktop, so you can also right-click a compatible file in Dolphin and choose **Open With → ExeBridge**.
+Supported Windows executable MIME types are registered with the desktop. On KDE you can use **Open With → ExeBridge** from Dolphin.
+
+## Distribution mode inside ExeBridge
+
+At the top of the ExeBridge window, choose:
+
+- **Fedora — default**
+- **Ubuntu**
+- **Arch Linux**
+
+The selection is saved globally in:
+
+```text
+~/.local/share/exebridge/config.json
+```
+
+Distribution mode controls distro-specific dependency checks and support guidance. Proton/UMU launch behavior remains compatible across all three modes.
+
+You can also start ExeBridge with an explicit mode:
+
+```bash
+~/.local/bin/exebridge --distro Ubuntu
+```
+
+Valid CLI values are `Fedora`, `Ubuntu`, and `Arch`.
 
 ## First launch
 
@@ -71,6 +119,7 @@ ExeBridge's bundled UMU bootstrap pins **UMU Launcher 1.4.4** and verifies the u
 | **Standard** | Default UMU/Proton configuration for most programs |
 | **Gaming** | Gaming-oriented profile with GE-Proton/UMU and GameMode support |
 | **Legacy / OpenGL** | Uses WineD3D (`PROTON_USE_WINED3D=1`) for programs that have trouble with Vulkan/DXVK |
+| **Managed / .NET** | UMU-Proton plus ExeBridge's tested compatibility pack |
 | **Debug** | Enables extra UMU/Proton logging for troubleshooting |
 
 ## Prefixes and application data
@@ -97,13 +146,13 @@ When Bubblewrap is available, ExeBridge can run an application with a more restr
 
 ## Updating from a repository checkout
 
-After pulling a newer repository version, reinstall/update the user-local application with:
+After pulling a newer repository version, update the user-local application with:
 
 ```bash
 bash update.sh
 ```
 
-This preserves existing prefixes and ExeBridge configuration.
+This preserves existing prefixes, distro selection, and ExeBridge configuration.
 
 ## Uninstall
 
@@ -117,17 +166,25 @@ The uninstaller intentionally preserves managed prefixes so it cannot silently d
 
 No compatibility front-end can make every Windows executable work. Kernel drivers, some anti-cheat systems, DRM, low-level hardware utilities, and software tied to unsupported Windows services may still require a Windows VM or native Windows installation.
 
+Arch users must manage the GPU-specific 32-bit Vulkan driver appropriate for their hardware. Ubuntu users with proprietary NVIDIA drivers may likewise need the matching NVIDIA `:i386` libraries supplied for their installed driver branch.
+
 ## Source integrity
 
-The exact 0.3.0 application source is reconstructed by:
+The canonical 0.4.0 application source is reconstructed by:
 
 ```bash
 bash assemble-source.sh
 ```
 
-Details are in [`src/source/README.md`](src/source/README.md). The archived original 0.3.0 release manifest is in [`docs/releases/0.3.0-manifest.json`](docs/releases/0.3.0-manifest.json).
+Expected SHA-256:
 
-GitHub Actions verifies source reconstruction, the expected SHA-256, Python compilation, and shell-script syntax on pushes and pull requests.
+```text
+003140c03e5a2aa4203c42547c18a3a62545b6ee7560606d27cb932d8b88a389
+```
+
+Details are in [`src/source/README.md`](src/source/README.md).
+
+GitHub Actions verifies source reconstruction, the expected SHA-256, Python compilation, shell-script syntax, and the presence of all three distro modes on pushes and pull requests.
 
 ## Project structure
 
@@ -143,4 +200,4 @@ ExeBridge is released under the **MIT License**. See [`LICENSE`](LICENSE).
 
 ## Disclaimer
 
-ExeBridge is an independent compatibility utility. Windows, Steam, Proton, Wine, UMU Launcher, and other referenced projects or trademarks belong to their respective owners.
+ExeBridge is an independent compatibility utility. Windows, Steam, Proton, Wine, UMU Launcher, Fedora, Ubuntu, Arch Linux, and other referenced projects or trademarks belong to their respective owners.

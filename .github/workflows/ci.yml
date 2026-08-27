@@ -14,10 +14,19 @@ jobs:
       - name: Reconstruct and verify ExeBridge source
         run: |
           bash assemble-source.sh /tmp/exebridge.py
-          test "$(sha256sum /tmp/exebridge.py | awk '{print $1}')" = "1ea9474b55f5c569caa62bf3b3e4294a7cc2d82d824f6885fcdf782a62c0c26a"
+          test "$(sha256sum /tmp/exebridge.py | awk '{print $1}')" = "003140c03e5a2aa4203c42547c18a3a62545b6ee7560606d27cb932d8b88a389"
 
       - name: Compile-check Python source
         run: python3 -m py_compile /tmp/exebridge.py
 
+      - name: Verify distro modes
+        run: |
+          grep -q 'SUPPORTED_DISTRO_MODES = ("Fedora", "Ubuntu", "Arch")' /tmp/exebridge.py
+          grep -q 'choices=\["Fedora", "Ubuntu", "Arch"\]' /tmp/exebridge.py
+          grep -q 'install_fedora()' install.sh
+          grep -q 'install_ubuntu()' install.sh
+          grep -q 'install_arch()' install.sh
+          grep -q -- '--distro fedora|ubuntu|arch' install.sh
+
       - name: Syntax-check shell scripts
-        run: bash -n install.sh update.sh uninstall.sh bootstrap_umu.sh assemble-source.sh
+        run: bash -n install.sh update.sh uninstall.sh bootstrap_umu.sh assemble-source.sh scripts/build-release.sh
