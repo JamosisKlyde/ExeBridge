@@ -1,0 +1,128 @@
+name: Release Packages
+
+on:
+  # Future releases: create a vX.Y.Z tag and this workflow packages it.
+  push:
+    tags:
+      - 'v*'
+    # One-time/current-release backfill when this workflow or packager changes.
+    branches:
+      - main
+    paths:
+      - '.github/workflows/release-packages.yml'
+      - 'scripts/build-release.sh'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to package, for example v0.3.0'
+        required: true
+        default: 'v0.3.0'
+
+permissions:
+  contents: write
+
+jobs:
+  package-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Choose release tag
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            tag='${{ inputs.tag }}'
+          elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            tag="${GITHUB_REF_NAME}"
+          else
+            # Backfill the currently published release when this workflow is first added.
+            tag="v0.3.0"
+          fi
+
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "ERROR: invalid release tag: $tag" >&2
+            exit 1
+          fi
+
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+          echo "Packaging release: $tag"
+
+      - name: Preserve release packager
+        run: cp scripts/build-release.sh /tmp/exebridge-build-release.sh
+
+      - name: Check out exact release tag
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+          git rev-parse --verify "refs/tags/$TAG"
+          git checkout --detach "$TAG"
+          echo "Release commit: $(git rev-parse HEAD)"
+
+      - name: Ensure packaging tools
+        run: |
+          set -euo pipefail
+          command -v zip >/dev/null || {
+            sudo apt-get update
+            sudo apt-get install -y zip
+          }
+
+      - name: Build release archives
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          EXEBRIDGE_SOURCE_ROOT: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          rm -rf dist
+          bash /tmp/exebridge-build-release.sh "$TAG" "$GITHUB_WORKSPACE/dist"
+
+      - name: Verify archive checksums
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum -c "ExeBridge-${VERSION}-SHA256.txt"
+
+      - name: Create release if needed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists."
+          else
+            gh release create "$TAG" \
+              --title "ExeBridge ${VERSION}" \
+              --generate-notes \
+              --verify-tag
+          fi
+
+      - name: Upload packaged release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" \
+            "dist/ExeBridge-${VERSION}.zip" \
+            "dist/ExeBridge-${VERSION}.tar.gz" \
+            "dist/ExeBridge-${VERSION}-SHA256.txt" \
+            --clobber
+
+      - name: Show published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: gh release view "$TAG"
