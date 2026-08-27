@@ -1,323 +1,146 @@
 # ExeBridge
 
-> A Linux front-end for launching Windows `.exe` and `.msi` applications through Proton using the UMU launcher.
+> Run Windows `.exe` and `.msi` applications on Fedora KDE through Proton/UMU without hand-managing Wine prefixes.
 
-ExeBridge is designed to make running Windows applications on Linux feel less like managing Wine prefixes by hand and more like launching a normal desktop application.
+**Current release source: 0.3.0**
 
-It provides a KDE/Qt interface, per-application compatibility modes, isolated prefixes, logging, desktop shortcuts, and Dolphin integration while keeping ordinary launches inside the user account.
+ExeBridge is a PyQt6 desktop front-end that gives Windows programs isolated compatibility environments, per-app launch settings, logs, desktop integration, repair tools, snapshots, and multiple Proton/UMU runner options.
 
----
+## Highlights
 
-## Features
+- Launch `.exe` and `.msi` files from ExeBridge or **Dolphin → Open With → ExeBridge**
+- Isolated Proton/Wine prefix per application, with managed-prefix reuse
+- **App Library** with saved programs, quick load/launch, and automatic registration after successful launches
+- **Standard**, **Gaming**, **Legacy / OpenGL**, and **Debug** launch modes
+- **Runner Manager** for rolling UMU/GE and installed `compatibilitytools.d` runners
+- Per-app WineD3D, GameMode, Esync, Fsync, Protonfixes, runner, and isolation controls
+- **Fix & Retry** compatibility recipes with executable-fingerprint memory
+- Prefix snapshots and restore, including automatic pre-change snapshots before Winetricks changes
+- Post-installer executable discovery for MSI/setup-style installers
+- Built-in PE icon extraction and Windows-icon desktop shortcuts
+- Optional **Restricted filesystem mode** using Bubblewrap, with optional network isolation
+- User-local UMU bootstrap/repair
+- No `sudo` or `pkexec` during ordinary application launches
 
-- **Windows `.exe` / `.msi` launcher for Linux**
-- **PyQt6 / KDE-friendly desktop interface**
-- **UMU Launcher + Proton integration**
-- **Per-application isolated prefixes**
-- **Automatic prefix reuse** for executables located inside an existing managed prefix
-- **Dolphin “Open With” integration**
-- **Desktop shortcut creation**
-- **Per-app settings**
-- **Per-app logs**
-- **Open or reset an application prefix**
-- **User-local UMU installation and repair**
-- **No `sudo` or `pkexec` required for normal application launches**
+## Install on Fedora / Fedora KDE
 
----
-
-## Compatibility Modes
-
-ExeBridge includes several launch profiles so applications can be started with different compatibility settings without manually editing environment variables.
-
-| Mode | Purpose |
-|---|---|
-| **Standard** | Default mode for most Windows applications |
-| **Gaming** | Gaming-oriented launch profile |
-| **Legacy / OpenGL** | Uses WineD3D for applications that have problems with DXVK/Vulkan |
-| **Debug** | Enables additional logging for troubleshooting |
-
-The **Legacy / OpenGL** profile uses:
+Clone the repository:
 
 ```bash
-PROTON_USE_WINED3D=1
+git clone https://github.com/JamosisKlyde/ExeBridge.git
+cd ExeBridge
+chmod +x install.sh
+./install.sh
 ```
 
----
-
-## How It Works
-
-```text
-Windows EXE / MSI
-       │
-       ▼
-   ExeBridge
-       │
-       ├── Select compatibility mode
-       ├── Load per-app settings
-       ├── Create/reuse isolated prefix
-       │
-       ▼
-   UMU Launcher
-       │
-       ▼
- Proton / GE-Proton
-       │
-       ▼
- Windows application
-```
-
-Each managed application gets its own compatibility environment instead of forcing every Windows program into one shared prefix.
-
-Managed prefixes are stored under:
-
-```text
-~/.local/share/exebridge/prefixes/
-```
-
----
-
-## Installation
-
-### Fedora / Fedora KDE
-
-Clone or download the ExeBridge repository, then run:
+Or download the repository ZIP from GitHub, extract it, open Konsole in that directory, and run:
 
 ```bash
 chmod +x install.sh
 ./install.sh
 ```
 
-The installer performs the required system-package setup and then installs ExeBridge and UMU for the current user.
+The installer requests administrator authentication only for Fedora packages such as PyQt6, GameMode, Winetricks, Bubblewrap, and graphics/runtime dependencies. ExeBridge itself is then installed into your user account.
 
-The Fedora setup may request administrator authentication once to install required packages such as:
+The repository preserves the exact tested ExeBridge 0.3.0 Python source as verified compressed text shards. `install.sh` reconstructs it automatically and refuses to install it unless its SHA-256 is:
 
-- `python3-pyqt6`
-- `gamemode`
-- desktop integration utilities
+```text
+1ea9474b55f5c569caa62bf3b3e4294a7cc2d82d824f6885fcdf782a62c0c26a
+```
 
-Normal ExeBridge launches do **not** require administrator privileges.
+## Start ExeBridge
 
-> **Development status:** the public repository is being prepared now. The application source and installer will be added separately; the install commands above become usable once `install.sh` is present.
-
----
-
-## Starting ExeBridge
-
-After installation, ExeBridge can be opened from the KDE application menu.
-
-It can also be started directly with:
+Open **ExeBridge** from KDE's application menu, or run:
 
 ```bash
 ~/.local/bin/exebridge
 ```
 
-You can additionally launch supported Windows files through Dolphin using **Open With → ExeBridge**.
+Supported Windows executable MIME types are registered with the desktop, so you can also right-click a compatible file in Dolphin and choose **Open With → ExeBridge**.
 
----
+## First launch
 
-## First Launch
+The first Windows-program launch may take several minutes because UMU can download the Steam Linux Runtime and the selected Proton/GE-Proton build.
 
-The first launch of a Windows application may take longer than later launches.
+ExeBridge's bundled UMU bootstrap pins **UMU Launcher 1.4.4** and verifies the upstream archive before installation.
 
-UMU may need to download components such as:
+## Compatibility modes
 
-- Steam Linux Runtime
-- Proton
-- compatibility runtime files
+| Mode | Purpose |
+|---|---|
+| **Standard** | Default UMU/Proton configuration for most programs |
+| **Gaming** | Gaming-oriented profile with GE-Proton/UMU and GameMode support |
+| **Legacy / OpenGL** | Uses WineD3D (`PROTON_USE_WINED3D=1`) for programs that have trouble with Vulkan/DXVK |
+| **Debug** | Enables extra UMU/Proton logging for troubleshooting |
 
-Depending on your connection, this can take several minutes.
+## Prefixes and application data
 
-After the required runtime is available, later launches should be substantially faster.
-
----
-
-## Application Prefixes
-
-ExeBridge isolates applications using separate Proton/Wine prefixes.
-
-Default location:
+Managed prefixes live under:
 
 ```text
 ~/.local/share/exebridge/prefixes/
 ```
 
-This helps reduce conflicts between applications that require different Windows libraries, settings, or compatibility options.
+If you run an installer, ExeBridge can search the resulting prefix for installed executables. Selecting an executable that already lives inside an ExeBridge-managed prefix reuses the same prefix rather than creating a second one.
 
-ExeBridge can also detect executables launched from inside an existing managed prefix and reuse that prefix when appropriate.
-
-### Prefix Tools
-
-From ExeBridge you can:
-
-- Open an application's prefix
-- Reset a broken prefix
-- View application logs
-- Change launch mode
-- Create a desktop shortcut
-
-> Resetting a prefix can remove Windows-side configuration and files stored inside that prefix. Back up important application data first.
-
----
-
-## Desktop Integration
-
-ExeBridge is intended to behave like a native Linux application.
-
-Supported integration includes:
-
-- KDE application launcher entry
-- Dolphin **Open With** support
-- Desktop shortcuts for Windows programs
-- Graphical launch configuration
-- Notifications and logs
-
----
-
-## UMU Launcher
-
-ExeBridge uses **UMU Launcher** as the compatibility-layer bridge between Linux and Proton.
-
-UMU allows Proton to be used outside of the normal Steam game-launch workflow while retaining the runtime environment Proton expects.
-
-ExeBridge's installer can bootstrap or repair the user-local UMU installation.
-
----
-
-## File Locations
-
-Typical ExeBridge paths:
+ExeBridge also keeps user-local logs, snapshots, extracted icons, configuration, and application state under:
 
 ```text
-~/.local/bin/exebridge
 ~/.local/share/exebridge/
-~/.local/share/exebridge/prefixes/
-~/.local/share/applications/
 ```
 
-Exact paths may vary as the project evolves.
+## Restricted mode
 
----
+When Bubblewrap is available, ExeBridge can run an application with a more restricted view of the Linux filesystem and can optionally isolate networking.
 
-## Troubleshooting
+**This is defense-in-depth, not a security guarantee.** Proton/Wine is not a security sandbox, and Windows software running through it may still be able to access resources available to your Linux user depending on the selected mode and configuration. Only run software you trust.
 
-### The first launch appears stuck
+## Updating from a repository checkout
 
-Give UMU time to download the required Steam runtime and Proton files.
-
-Run ExeBridge in **Debug** mode if the application still does not start.
-
-### A program opens but graphics are broken
-
-Try **Legacy / OpenGL**. This enables:
+After pulling a newer repository version, reinstall/update the user-local application with:
 
 ```bash
-PROTON_USE_WINED3D=1
+bash update.sh
 ```
 
-and can help with applications that do not work correctly through the normal Vulkan/DXVK path.
+This preserves existing prefixes and ExeBridge configuration.
 
-### A game performs poorly
-
-Try the **Gaming** profile.
-
-Also verify that your graphics drivers and Vulkan support are correctly installed.
-
-### An application stopped working after changing settings
-
-Reset that application's prefix and launch it again.
-
-Be aware that resetting the prefix can remove application data stored inside the Windows compatibility environment.
-
-### ExeBridge itself will not start
-
-Launch it from a terminal:
+## Uninstall
 
 ```bash
-~/.local/bin/exebridge
+bash uninstall.sh
 ```
 
-The terminal output can help identify missing Python, Qt, UMU, or runtime dependencies.
+The uninstaller intentionally preserves managed prefixes so it cannot silently delete installed Windows applications or their data. If you want to remove those later, inspect `~/.local/share/exebridge/prefixes/` first.
 
----
+## Known limitations
 
-## Project Goals
+No compatibility front-end can make every Windows executable work. Kernel drivers, some anti-cheat systems, DRM, low-level hardware utilities, and software tied to unsupported Windows services may still require a Windows VM or native Windows installation.
 
-ExeBridge aims to provide a practical middle ground between:
+## Source integrity
 
-- manually configuring Wine
-- full compatibility managers
-- launching everything through Steam
+The exact 0.3.0 application source is reconstructed by:
 
-The focus is on making individual Windows executables easy to launch while still exposing enough control to troubleshoot programs that need special compatibility settings.
+```bash
+bash assemble-source.sh
+```
 
----
+Details are in [`src/source/README.md`](src/source/README.md). The archived original 0.3.0 release manifest is in [`docs/releases/0.3.0-manifest.json`](docs/releases/0.3.0-manifest.json).
 
-## Current Focus
+GitHub Actions verifies source reconstruction, the expected SHA-256, Python compilation, and shell-script syntax on pushes and pull requests.
 
-Development priorities include:
+## Project structure
 
-- broader Windows application compatibility
-- improved automatic Proton selection
-- cleaner error reporting
-- stronger prefix management
-- easier repair tools
-- additional desktop integration
-- streamlined updates
+See [`docs/PROJECT_STRUCTURE.md`](docs/PROJECT_STRUCTURE.md).
 
----
+## Changelog
 
-## Platform
-
-ExeBridge is currently designed primarily around:
-
-- **Linux**
-- **Fedora / Fedora KDE**
-- **KDE Plasma**
-- **Python / PyQt6**
-- **UMU Launcher**
-- **Proton / GE-Proton**
-
-Support for additional distributions can be expanded as the project matures.
-
----
-
-## Contributing
-
-Bug reports, compatibility reports, and development contributions are welcome once the public contribution workflow is finalized.
-
-When reporting an application compatibility problem, useful information includes:
-
-- Linux distribution
-- desktop environment
-- GPU
-- Proton version
-- ExeBridge launch mode
-- application/game name
-- relevant ExeBridge debug log
-
-Do **not** include passwords, API keys, authentication tokens, or other credentials in logs or issue reports.
-
----
-
-## Disclaimer
-
-ExeBridge is an independent compatibility utility.
-
-Windows, Steam, Proton, Wine, UMU Launcher, and other referenced projects or trademarks belong to their respective owners.
-
-Compatibility varies by application. Some Windows software may require additional components or may not work correctly through Proton/Wine.
-
----
+See [`CHANGELOG.md`](CHANGELOG.md).
 
 ## License
 
-A project license has not yet been selected.
+ExeBridge is released under the **MIT License**. See [`LICENSE`](LICENSE).
 
-Until a license is added, normal copyright restrictions apply to the source code.
+## Disclaimer
 
----
-
-<p align="center">
-  <strong>ExeBridge</strong><br>
-  Windows EXE launcher • UMU + Proton • Linux
-</p>
+ExeBridge is an independent compatibility utility. Windows, Steam, Proton, Wine, UMU Launcher, and other referenced projects or trademarks belong to their respective owners.
