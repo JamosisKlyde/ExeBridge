@@ -1,0 +1,17 @@
+{
+  "name": "ExeBridge",
+  "version": "0.3.0",
+  "release_channel": "local-package",
+  "update_type": "section-2-advanced",
+  "files": {
+    "exebridge.py": "1ea9474b55f5c569caa62bf3b3e4294a7cc2d82d824f6885fcdf782a62c0c26a",
+    "bootstrap_umu.sh": "083c5fe491dfe495f8b34bd5e07866409054a6dc1b5e0124f264f5fe4f72c8d5",
+    "install.sh": "9f01c0b0e544a0871401dc80515a83ca614c99c2e378cbfc2cfd6252d850ee69",
+    "update.sh": "426686f775032fdee3311c9e3cdd27d6d3f676280d97dc43ce7c319809cb30d0",
+    "uninstall.sh": "3f92d4dca09a2c47d8c9c0b622b1e776b8f787c5d886ffc50f69418b876ac331",
+    "exebridge.svg": "1c75cf114186e4c14144ea9083e1d8390ab190f9882afdad886491958575d492",
+    "README.md": "0cb580847e8c6a7bcd84a8f85d7a368b8e8f7efd95015d1e5ea29bbc03a4af19",
+    "CHANGELOG.md": "8ee031d66218dd5b4a32bb839aea0664df801d27c363e79b55272321cb99fffe",
+    "LICENSE": "b7bd2e58bea5753be9e4ee41b72618b8dbfa75cf046edc54b84ac3975399224c"
+  }
+}
