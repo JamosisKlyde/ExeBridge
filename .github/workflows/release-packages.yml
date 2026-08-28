@@ -1,11 +1,7 @@
 name: Release Packages
 
 on:
-  # Future releases: create a vX.Y.Z tag and this workflow packages it.
   push:
-    tags:
-      - 'v*'
-    # A workflow/packager update can publish the current prepared release.
     branches:
       - main
     paths:
@@ -14,9 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag to package, for example v0.4.0'
+        description: 'Release tag to package, for example v0.5.1'
         required: true
-        default: 'v0.4.0'
+        default: 'v0.5.1'
 
 permissions:
   contents: write
@@ -24,39 +20,22 @@ permissions:
 jobs:
   package-and-publish:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Choose release tag
         id: release
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            tag='${{ inputs.tag }}'
-          elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            tag="${GITHUB_REF_NAME}"
-          else
-            # Publish the currently prepared multi-distro release.
-            tag="v0.4.0"
-          fi
-
-          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
-            echo "ERROR: invalid release tag: $tag" >&2
-            exit 1
-          fi
-
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then tag='${{ inputs.tag }}'; else tag="v0.5.1"; fi
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]] || { echo "ERROR: invalid release tag: $tag" >&2; exit 1; }
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
-          echo "Packaging release: $tag"
-
       - name: Preserve release packager
         run: cp scripts/build-release.sh /tmp/exebridge-build-release.sh
-
       - name: Select release source
         id: source
         env:
@@ -67,37 +46,22 @@ jobs:
           if git rev-parse --verify "refs/tags/$TAG" >/dev/null 2>&1; then
             git checkout --detach "$TAG"
             echo "tag_exists=true" >> "$GITHUB_OUTPUT"
-            echo "Release source: existing tag $TAG at $(git rev-parse HEAD)"
           else
             echo "tag_exists=false" >> "$GITHUB_OUTPUT"
-            echo "Release source: current commit $(git rev-parse HEAD); $TAG will be created by the release step."
           fi
-
       - name: Ensure packaging tools
-        run: |
-          set -euo pipefail
-          command -v zip >/dev/null || {
-            sudo apt-get update
-            sudo apt-get install -y zip
-          }
-
+        run: command -v zip >/dev/null || { sudo apt-get update; sudo apt-get install -y zip; }
       - name: Build release archives
         env:
           TAG: ${{ steps.release.outputs.tag }}
           EXEBRIDGE_SOURCE_ROOT: ${{ github.workspace }}
         run: |
-          set -euo pipefail
           rm -rf dist
           bash /tmp/exebridge-build-release.sh "$TAG" "$GITHUB_WORKSPACE/dist"
-
       - name: Verify archive checksums
         env:
           VERSION: ${{ steps.release.outputs.version }}
-        run: |
-          set -euo pipefail
-          cd dist
-          sha256sum -c "ExeBridge-${VERSION}-SHA256.txt"
-
+        run: cd dist && sha256sum -c "ExeBridge-${VERSION}-SHA256.txt"
       - name: Create release if needed
         env:
           GH_TOKEN: ${{ github.token }}
@@ -109,30 +73,21 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release $TAG already exists."
           elif [[ "$TAG_EXISTS" == "true" ]]; then
-            gh release create "$TAG" \
-              --title "ExeBridge ${VERSION}" \
-              --generate-notes \
-              --verify-tag
+            gh release create "$TAG" --title "ExeBridge ${VERSION}" --generate-notes --verify-tag
           else
-            gh release create "$TAG" \
-              --target "$GITHUB_SHA" \
-              --title "ExeBridge ${VERSION}" \
-              --generate-notes
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "ExeBridge ${VERSION}" --generate-notes
           fi
-
       - name: Upload packaged release assets
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.release.outputs.tag }}
           VERSION: ${{ steps.release.outputs.version }}
         run: |
-          set -euo pipefail
           gh release upload "$TAG" \
             "dist/ExeBridge-${VERSION}.zip" \
             "dist/ExeBridge-${VERSION}.tar.gz" \
             "dist/ExeBridge-${VERSION}-SHA256.txt" \
             --clobber
-
       - name: Show published release
         env:
           GH_TOKEN: ${{ github.token }}

@@ -1,81 +1,52 @@
 # ExeBridge Project Structure
 
-The repository is organized around ExeBridge 0.4.0 with Fedora, Ubuntu, and Arch Linux support.
+The repository is organized around ExeBridge 0.5.1.
 
 ```text
 ExeBridge/
-├── .github/
-│   ├── ISSUE_TEMPLATE/
-│   └── workflows/
-│       ├── ci.yml
-│       └── release-packages.yml
-├── assets/
+├── .github/workflows/
+│   ├── ci.yml
+│   └── release-packages.yml
 ├── docs/
-│   ├── releases/
-│   ├── DISTRIBUTION_SUPPORT.md
-│   └── PROJECT_STRUCTURE.md
 ├── scripts/
 │   └── build-release.sh
-├── src/
-│   └── source/
-│       ├── README.md
-│       └── exebridge.py.gz.b64.part-*
-├── tests/
+├── src/source/
+│   ├── README.md
+│   ├── exebridge.py.gz.b64.part-*
+│   └── updater.py.gz.b64.part-*
 ├── assemble-source.sh
 ├── bootstrap_umu.sh
+├── install-or-update.sh
 ├── install.sh
 ├── update.sh
 ├── uninstall.sh
 ├── exebridge.svg
 ├── CHANGELOG.md
-├── CODE_OF_CONDUCT.md
-├── CONTRIBUTING.md
-├── SECURITY.md
 ├── LICENSE
-├── README.md
-└── .gitignore
+└── README.md
 ```
 
-## Application source
+## Canonical source
 
-The canonical 0.4.0 `exebridge.py` is compressed and split into Base64 text shards under `src/source/`.
+`assemble-source.sh` reconstructs and SHA-256 verifies both the main PyQt6 application and the updater from the text shards under `src/source/`.
 
-`assemble-source.sh` concatenates, decodes, decompresses, and SHA-256 verifies those shards before producing `exebridge.py`.
-
-Expected source SHA-256:
+Expected hashes for 0.5.1:
 
 ```text
-003140c03e5a2aa4203c42547c18a3a62545b6ee7560606d27cb932d8b88a389
+exebridge.py  129ecf05ddd13c7414b0a9a51c739702a96c691e403db963844837dcd8cef8dd
+updater.py    64932bb59413e59b4cf9a4db7b5bde420cd9d4a692f7272934ae4558c07b360c
 ```
 
-`install.sh` and `update.sh` reconstruct the source automatically when a root-level `exebridge.py` is not present.
+## Installation
 
-## Distribution layer
+`install.sh` handles Fedora/Ubuntu/Arch system dependencies and then calls `install-or-update.sh`. The latter performs the user-local app replacement, version backup, launcher installation, and safe configuration migration. `update.sh` is the no-system-dependency repository update path.
 
-The application supports `Fedora`, `Ubuntu`, and `Arch` distro modes. Fedora is the default/fallback. `install.sh` selects the appropriate package manager and writes the initial distro mode without overwriting existing ExeBridge application settings.
+Installed application files live under `~/.local/share/exebridge/app/`, while prefixes, Known Good data, logs, and version backups remain outside that replaceable app directory.
 
-See `docs/DISTRIBUTION_SUPPORT.md` for the dependency matrix.
+## Release packaging
 
-## Installation path
-
-The installed user-local application lives primarily under:
-
-```text
-~/.local/share/exebridge/
-```
-
-with its launcher at:
-
-```text
-~/.local/bin/exebridge
-```
-
-Desktop integration is installed beneath the user's local applications and icon directories.
+`scripts/build-release.sh` reconstructs the verified Python sources into an updater-compatible `app/` payload, generates `update-manifest.json`, and creates `.zip`, `.tar.gz`, and SHA-256 assets. The release workflow publishes those assets for the prepared version tag.
 
 ## CI
 
-`.github/workflows/ci.yml` verifies source reconstruction, the source SHA-256, Python compilation, shell syntax, and presence of all three distribution modes.
-
-## Releases
-
-`scripts/build-release.sh` creates `.zip`, `.tar.gz`, and SHA-256 release assets from an exact version tag. `.github/workflows/release-packages.yml` attaches those assets to tagged GitHub releases.
+CI reconstructs and compile-checks both Python sources, checks the restored Known Good/desktop-shortcut functionality, syntax-checks shell scripts, builds the release ZIP, and verifies the update manifest against the exact packaged bytes.

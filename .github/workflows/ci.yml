@@ -11,22 +11,45 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Reconstruct and verify ExeBridge source
+      - name: Reconstruct and verify ExeBridge sources
         run: |
-          bash assemble-source.sh /tmp/exebridge.py
-          test "$(sha256sum /tmp/exebridge.py | awk '{print $1}')" = "003140c03e5a2aa4203c42547c18a3a62545b6ee7560606d27cb932d8b88a389"
+          bash assemble-source.sh /tmp/exebridge.py /tmp/updater.py
+          test "$(sha256sum /tmp/exebridge.py | awk '{print $1}')" = "129ecf05ddd13c7414b0a9a51c739702a96c691e403db963844837dcd8cef8dd"
+          test "$(sha256sum /tmp/updater.py | awk '{print $1}')" = "64932bb59413e59b4cf9a4db7b5bde420cd9d4a692f7272934ae4558c07b360c"
 
-      - name: Compile-check Python source
-        run: python3 -m py_compile /tmp/exebridge.py
+      - name: Compile-check Python sources
+        run: python3 -m py_compile /tmp/exebridge.py /tmp/updater.py
 
-      - name: Verify distro modes
+      - name: Verify 0.5.1 restored features
         run: |
-          grep -q 'SUPPORTED_DISTRO_MODES = ("Fedora", "Ubuntu", "Arch")' /tmp/exebridge.py
-          grep -q 'choices=\["Fedora", "Ubuntu", "Arch"\]' /tmp/exebridge.py
+          grep -q 'VERSION = "0.5.1"' /tmp/exebridge.py
+          grep -q 'Mark Known Good' /tmp/exebridge.py
+          grep -q 'Known Good…' /tmp/exebridge.py
+          grep -q 'Create Desktop Icon' /tmp/exebridge.py
+          grep -q -- '--profile-id' /tmp/exebridge.py
+          grep -q -- '--launch-now' /tmp/exebridge.py
+          grep -q 'Legacy Auto' /tmp/exebridge.py
+          grep -q 'Japanese / CP932' /tmp/exebridge.py
           grep -q 'install_fedora()' install.sh
           grep -q 'install_ubuntu()' install.sh
           grep -q 'install_arch()' install.sh
-          grep -q -- '--distro fedora|ubuntu|arch' install.sh
 
       - name: Syntax-check shell scripts
-        run: bash -n install.sh update.sh uninstall.sh bootstrap_umu.sh assemble-source.sh scripts/build-release.sh
+        run: bash -n install-or-update.sh install.sh update.sh uninstall.sh bootstrap_umu.sh assemble-source.sh scripts/build-release.sh
+
+      - name: Test release packaging
+        run: |
+          bash scripts/build-release.sh v0.5.1 /tmp/exebridge-dist
+          unzip -t /tmp/exebridge-dist/ExeBridge-0.5.1.zip
+          python3 - <<'PY'
+          import hashlib, json, zipfile
+          p='/tmp/exebridge-dist/ExeBridge-0.5.1.zip'
+          with zipfile.ZipFile(p) as z:
+              root='ExeBridge-0.5.1/'
+              manifest=json.loads(z.read(root+'update-manifest.json'))
+              assert manifest['version']=='0.5.1'
+              assert manifest['channel']=='stable'
+              for rel, expected in manifest['sha256'].items():
+                  actual=hashlib.sha256(z.read(root+rel)).hexdigest()
+                  assert actual == expected, (rel, actual, expected)
+          PY

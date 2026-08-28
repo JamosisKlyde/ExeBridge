@@ -1,35 +1,36 @@
 # Changelog
 
+## 0.5.1 — Known Good + desktop shortcuts restored
+
+- Restored **Mark Known Good** for saving working executable paths and compatibility profiles.
+- Restored the **Known Good manager** with load, direct launch, remove, and desktop-shortcut actions.
+- Restored **Create Desktop Icon** and application-menu shortcut generation.
+- Desktop shortcuts launch the exact saved Known Good setup with `--profile-id` and `--launch-now`.
+- Added migration of recognizable preserved Known Good layouts from ExeBridge 0.2–0.4 without deleting legacy keys.
+- Reuses preserved extracted Windows icons from older App Library data when available.
+- Kept all 0.5.0 legacy compatibility and expanded runner support.
+- Kept the built-in stable update manager and user-local version backups.
+
+## 0.5.0 — Legacy-game and expanded runner update
+
+- Added runner discovery for UMU/GE-Proton, installed Steam Proton versions, custom Proton/Proton-TKG, Lutris Wine/Wine-GE, and system Wine/Wine64.
+- Added **Legacy Auto** and **Japanese / CP932 legacy** compatibility presets.
+- Added an ASCII path bridge for older applications that cannot safely consume non-ASCII paths.
+- Added WineD3D/OpenGL fallback and conservative Esync/Fsync options for older titles.
+- Added the built-in stable update manager with update-ZIP manifest/hash validation and rollback backups.
+
 ## 0.4.0 — Fedora / Ubuntu / Arch update
 
 - Added first-class **Fedora**, **Ubuntu**, and **Arch Linux** distribution modes.
 - Kept **Fedora as the default/fallback mode**.
 - Added automatic supported-distro detection during installation.
-- Added `./install.sh --distro fedora|ubuntu|arch` to override installer detection.
-- Added a persistent **Distribution mode** selector directly in the ExeBridge UI.
-- Added `--distro Fedora|Ubuntu|Arch` to the ExeBridge command line.
-- Added distro-aware package-manager handling:
-  - Fedora: `dnf`
-  - Ubuntu: `apt`
-  - Arch: `pacman`
-- Added Ubuntu `i386` setup and 32-bit Vulkan dependency handling for x86-64 systems.
-- Added Arch multilib-aware 32-bit Vulkan/GameMode handling and GPU-driver guidance.
-- Replaced Fedora-only 32-bit graphics diagnostics with distro-aware checks.
-- Updated Bubblewrap/Restricted-mode guidance so it follows the selected distro mode.
+- Added distro-aware package-manager and 32-bit graphics dependency handling.
 - Preserved existing prefixes, per-app settings, Known Good data, snapshots, compatibility memory, and runner settings when upgrading from 0.3.0.
 
 ## 0.3.0 — Section 2 advanced update
 
-- Added App Library with saved programs, quick load/launch, and automatic library registration after successful launches.
-- Added post-installer executable discovery for MSI/setup-style installers.
-- Added built-in PE icon extraction with no extra Python package dependency.
-- Added Runner Manager for rolling UMU/GE runners and specific compatibilitytools.d runners.
-- Added per-app advanced compatibility controls for runner, WineD3D, GameMode, Esync, Fsync, Protonfixes, and isolation.
-- Added prefix snapshots and restore, with automatic pre-change snapshots before Winetricks modifications.
-- Added Restricted filesystem mode using bubblewrap when available, plus optional network isolation.
-- Added compatibility memory: successful Fix & Retry recipes are learned by executable fingerprint and can be reused on another copy of the same executable.
-- Desktop shortcuts now use extracted Windows icons when available.
-- Existing 0.2.0 reliability features remain intact.
+- Added App Library, executable discovery, icon extraction, Runner Manager, advanced compatibility controls, prefix snapshots, Restricted mode, and compatibility memory.
+- Desktop shortcuts use extracted Windows icons when available.
 
 ## 0.2.0
 
