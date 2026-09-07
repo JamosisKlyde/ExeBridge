@@ -13,16 +13,17 @@ jobs:
 
       - name: Reconstruct and verify ExeBridge sources
         run: |
-          bash assemble-source.sh /tmp/exebridge.py /tmp/updater.py
-          test "$(sha256sum /tmp/exebridge.py | awk '{print $1}')" = "129ecf05ddd13c7414b0a9a51c739702a96c691e403db963844837dcd8cef8dd"
-          test "$(sha256sum /tmp/updater.py | awk '{print $1}')" = "64932bb59413e59b4cf9a4db7b5bde420cd9d4a692f7272934ae4558c07b360c"
+          bash assemble-source.sh /tmp/exebridge.py /tmp/updater.py /tmp/webview2_helper.py
+          test "$(sha256sum /tmp/exebridge.py | awk '{print $1}')" = "cb4139e71d3beec9ae79d26516082124c681da7699e43e25ee821a51f8ca415a"
+          test "$(sha256sum /tmp/updater.py | awk '{print $1}')" = "3ac90db850b164436ee621e503819e3fe0a3c694be54fa1167b6b19837f7de7b"
+          test "$(sha256sum /tmp/webview2_helper.py | awk '{print $1}')" = "3cebf6d05ea76e31ebeeab34973baeff227bd28470c05797491f9f3f93e25327"
 
       - name: Compile-check Python sources
-        run: python3 -m py_compile /tmp/exebridge.py /tmp/updater.py
+        run: python3 -m py_compile /tmp/exebridge.py /tmp/updater.py /tmp/webview2_helper.py
 
-      - name: Verify 0.5.1 restored features
+      - name: Verify 0.6.0 WebView2 and restored features
         run: |
-          grep -q 'VERSION = "0.5.1"' /tmp/exebridge.py
+          grep -q 'VERSION = "0.6.0"' /tmp/exebridge.py
           grep -q 'Mark Known Good' /tmp/exebridge.py
           grep -q 'Known Good…' /tmp/exebridge.py
           grep -q 'Create Desktop Icon' /tmp/exebridge.py
@@ -30,6 +31,9 @@ jobs:
           grep -q -- '--launch-now' /tmp/exebridge.py
           grep -q 'Legacy Auto' /tmp/exebridge.py
           grep -q 'Japanese / CP932' /tmp/exebridge.py
+          grep -q 'WebView2 Runtime' /tmp/exebridge.py
+          grep -q 'Install / Repair WebView2' /tmp/exebridge.py
+          grep -q 'MicrosoftEdgeWebview2Setup.exe' /tmp/webview2_helper.py
           grep -q 'install_fedora()' install.sh
           grep -q 'install_ubuntu()' install.sh
           grep -q 'install_arch()' install.sh
@@ -39,16 +43,17 @@ jobs:
 
       - name: Test release packaging
         run: |
-          bash scripts/build-release.sh v0.5.1 /tmp/exebridge-dist
-          unzip -t /tmp/exebridge-dist/ExeBridge-0.5.1.zip
+          bash scripts/build-release.sh v0.6.0 /tmp/exebridge-dist
+          unzip -t /tmp/exebridge-dist/ExeBridge-0.6.0.zip
           python3 - <<'PY'
           import hashlib, json, zipfile
-          p='/tmp/exebridge-dist/ExeBridge-0.5.1.zip'
+          p='/tmp/exebridge-dist/ExeBridge-0.6.0.zip'
           with zipfile.ZipFile(p) as z:
-              root='ExeBridge-0.5.1/'
+              root='ExeBridge-0.6.0/'
               manifest=json.loads(z.read(root+'update-manifest.json'))
-              assert manifest['version']=='0.5.1'
+              assert manifest['version']=='0.6.0'
               assert manifest['channel']=='stable'
+              assert 'app/webview2_helper.py' in manifest['sha256']
               for rel, expected in manifest['sha256'].items():
                   actual=hashlib.sha256(z.read(root+rel)).hexdigest()
                   assert actual == expected, (rel, actual, expected)

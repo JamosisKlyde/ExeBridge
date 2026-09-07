@@ -11,7 +11,7 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 STAGE="$TMP/$NAME"; mkdir -p "$STAGE/app"
 required=(assemble-source.sh exebridge.svg install-or-update.sh install.sh update.sh uninstall.sh bootstrap_umu.sh README.md CHANGELOG.md LICENSE)
 for file in "${required[@]}"; do [[ -f "$ROOT/$file" ]] || { echo "ERROR: required release file missing: $file" >&2; exit 1; }; done
-bash "$ROOT/assemble-source.sh" "$STAGE/app/exebridge.py" "$STAGE/app/updater.py"
+bash "$ROOT/assemble-source.sh" "$STAGE/app/exebridge.py" "$STAGE/app/updater.py" "$STAGE/app/webview2_helper.py"
 python3 - "$STAGE/app/exebridge.py" "$VERSION" <<'PY'
 import re, sys
 text=open(sys.argv[1], encoding='utf-8').read(4096)
@@ -37,7 +37,10 @@ import hashlib, json, sys
 root=Path(sys.argv[1]); version=sys.argv[2]
 def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 manifest={"app_id":"exebridge","version":version,"channel":"stable","entrypoint":"app/exebridge.py","sha256":{
-"app/exebridge.py":sha(root/'app/exebridge.py'),"app/updater.py":sha(root/'app/updater.py'),"app/exebridge.svg":sha(root/'app/exebridge.svg')}}
+"app/exebridge.py":sha(root/'app/exebridge.py'),
+"app/updater.py":sha(root/'app/updater.py'),
+"app/webview2_helper.py":sha(root/'app/webview2_helper.py'),
+"app/exebridge.svg":sha(root/'app/exebridge.svg')}}
 (root/'update-manifest.json').write_text(json.dumps(manifest, indent=2)+"\n", encoding='utf-8')
 PY
 (cd "$STAGE" && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)

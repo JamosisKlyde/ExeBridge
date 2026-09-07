@@ -1,10 +1,11 @@
-# Canonical ExeBridge 0.5.1 source
+# Canonical ExeBridge 0.6.0 source
 
-The canonical ExeBridge 0.5.1 Python sources are stored as gzip-compressed, Base64-encoded text shards so the repository can preserve the exact bytes while remaining text-only.
+The canonical ExeBridge 0.6.0 Python sources are stored as gzip-compressed, Base64-encoded text shards so the repository can preserve the exact bytes while remaining text-only.
 
-`assemble-source.sh` reconstructs and verifies both files:
+`assemble-source.sh` reconstructs and verifies all three application source files:
 
-- `exebridge.py` SHA-256: `129ecf05ddd13c7414b0a9a51c739702a96c691e403db963844837dcd8cef8dd`
-- `updater.py` SHA-256: `64932bb59413e59b4cf9a4db7b5bde420cd9d4a692f7272934ae4558c07b360c`
+- `exebridge.py` SHA-256: `cb4139e71d3beec9ae79d26516082124c681da7699e43e25ee821a51f8ca415a`
+- `updater.py` SHA-256: `3ac90db850b164436ee621e503819e3fe0a3c694be54fa1167b6b19837f7de7b`
+- `webview2_helper.py` SHA-256: `3cebf6d05ea76e31ebeeab34973baeff227bd28470c05797491f9f3f93e25327`
 
-The five `exebridge.py.gz.b64.part-*` files and two `updater.py.gz.b64.part-*` files must each be treated as one source artifact. Do not edit an individual shard directly; reconstruct, modify, compile/test, recompress, then replace the complete shard set and update the expected hashes.
+The six `exebridge.py.gz.b64.part-*` files, two `updater.py.gz.b64.part-*` files, and two `webview2_helper.py.gz.b64.part-*` files must each be treated as one complete source artifact. Do not edit an individual shard directly; reconstruct, modify, compile/test, recompress, then replace the complete shard set and update the expected hashes.

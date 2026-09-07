@@ -2,25 +2,38 @@
 
 > Run Windows `.exe` and `.msi` applications on Fedora, Ubuntu, and Arch Linux with Proton/UMU or Wine, including legacy Windows-game compatibility helpers.
 
-**Current stable version: 0.5.1**
+**Current stable version: 0.6.0**
 
-ExeBridge is a PyQt6 desktop front-end for launching Windows applications with isolated prefixes, selectable runners, legacy-game compatibility controls, saved Known Good configurations, desktop shortcuts, and user-local updates.
+ExeBridge is a PyQt6 desktop front-end for launching Windows applications with isolated prefixes, selectable runners, legacy-game compatibility controls, saved Known Good configurations, desktop shortcuts, dependency helpers, and user-local updates.
 
-## 0.5.1 highlights
+## 0.6.0 highlights
 
-- **Mark Known Good** saves a working executable path together with its prefix, runner, compatibility preset, Japanese-locale setting, ASCII path bridge, and WineD3D setting.
-- **Known Good manager** can restore, launch, remove, or create a shortcut from a saved working setup.
-- **Desktop icons are back** and launch the exact saved Known Good profile through `--profile-id` / `--launch-now`.
-- Attempts to migrate recognizable **0.2–0.4 Known Good** entries without deleting legacy keys.
-- Reuses preserved extracted Windows icons when available; otherwise uses the ExeBridge icon.
-- Keeps the 0.5 legacy-game stack: expanded Proton/Wine runners, Japanese/CP932 handling, ASCII path bridging, and WineD3D/OpenGL fallback.
-- Built-in stable updater can check GitHub Releases or install a downloaded ExeBridge update ZIP.
+- **Microsoft Edge WebView2 support** is now built into ExeBridge as a per-application compatibility component.
+- Three WebView2 modes: **Auto-detect**, **Required / ensure installed**, and **Disabled**.
+- **Check WebView2** inspects the selected application's exact Wine/Proton prefix for an installed runtime.
+- **Install / Repair WebView2** downloads Microsoft's Evergreen bootstrapper and runs it inside the selected prefix.
+- Automatic pre-launch provisioning can install WebView2 and retry the Windows app when the dependency is required.
+- Silent installation is attempted first, with a visible-installer fallback when verification fails.
+- WebView2 mode is included in **Known Good** profiles and restored by their desktop shortcuts.
+- All 0.5.1 legacy compatibility, Japanese/CP932 handling, runner discovery, Known Good management, and updater functionality remain available.
 
 ## Runner support
 
 ExeBridge detects UMU/GE-Proton, Steam Proton (including older installed versions), custom Proton/Proton-TKG, Lutris Wine/Wine-GE, and system Wine/Wine64.
 
-Older games can use **Legacy Auto** or **Japanese / CP932 legacy** presets, WineD3D/OpenGL fallback, and conservative Esync/Fsync settings.
+Older games can use **Legacy Auto** or **Japanese / CP932 legacy** presets, WineD3D/OpenGL fallback, conservative Esync/Fsync settings, and the ASCII path bridge for applications that cannot safely consume non-ASCII paths.
+
+## WebView2 component support
+
+For Windows applications that embed Microsoft Edge WebView2:
+
+1. Select the Windows executable and its ExeBridge prefix.
+2. Leave **WebView2 Runtime** on **Auto-detect**, or choose **Required / ensure installed** when the application is known to need it.
+3. Use **Check WebView2** to inspect the prefix.
+4. Use **Install / Repair WebView2** to provision the Evergreen runtime in that prefix.
+5. Launch normally after ExeBridge verifies the runtime.
+
+WebView2 is a modern Windows component. ExeBridge can automate detection, download, prefix-targeted installation, verification, and retry handling, but Wine/Proton compatibility still varies by application.
 
 ## Distribution support
 
@@ -45,7 +58,7 @@ To force an installer family:
 ./install.sh --distro arch
 ```
 
-## Updating an existing 0.5.x installation
+## Updating an existing installation
 
 Inside ExeBridge, click **Updates…** and either **Check GitHub** or **Install Update ZIP…**. The updater verifies the stable update manifest and SHA-256 hashes, backs up the previous app files, then preserves prefixes and settings.
 
@@ -73,7 +86,7 @@ The uninstaller removes ExeBridge application files and launchers but intentiona
 
 ## Source integrity
 
-The canonical application sources are stored as verified gzip/Base64 shards under `src/source/`. `assemble-source.sh` reconstructs both `exebridge.py` and `updater.py` and verifies their SHA-256 hashes. Release ZIPs include the reconstructed app payload plus a stable `update-manifest.json` with SHA-256 hashes.
+The canonical application sources are stored as verified gzip/Base64 shards under `src/source/`. `assemble-source.sh` reconstructs `exebridge.py`, `updater.py`, and `webview2_helper.py` and verifies their SHA-256 hashes. Release ZIPs include the reconstructed app payload plus a stable `update-manifest.json` with SHA-256 hashes.
 
 ## License
 
@@ -81,4 +94,4 @@ ExeBridge is released under the **MIT License**. See [`LICENSE`](LICENSE).
 
 ## Disclaimer
 
-ExeBridge is an independent compatibility utility. Windows, Steam, Proton, Wine, UMU Launcher, Fedora, Ubuntu, Arch Linux, Lutris, and other referenced projects or trademarks belong to their respective owners.
+ExeBridge is an independent compatibility utility. Windows, Microsoft Edge WebView2, Steam, Proton, Wine, UMU Launcher, Fedora, Ubuntu, Arch Linux, Lutris, and other referenced projects or trademarks belong to their respective owners.

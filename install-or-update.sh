@@ -8,7 +8,7 @@ BIN="$HOME/.local/bin"
 DESKTOP="$HOME/.local/share/applications"
 ICONDIR="$HOME/.local/share/icons/hicolor/scalable/apps"
 VERSIONS="$APP/versions"
-VERSION="0.5.1"
+VERSION="0.6.0"
 
 if ! /usr/bin/python3 - <<'PY' >/dev/null 2>&1
 from PyQt6.QtWidgets import QApplication
@@ -60,11 +60,11 @@ fi
 rm -rf "$APPDIR.new"
 mkdir -p "$APPDIR.new"
 
-if [[ -f "$HERE/app/exebridge.py" && -f "$HERE/app/updater.py" && -f "$HERE/app/exebridge.svg" ]]; then
+if [[ -f "$HERE/app/exebridge.py" && -f "$HERE/app/updater.py" && -f "$HERE/app/webview2_helper.py" && -f "$HERE/app/exebridge.svg" ]]; then
   cp -a "$HERE/app/." "$APPDIR.new/"
 elif [[ -x "$HERE/assemble-source.sh" && -f "$HERE/exebridge.svg" ]]; then
   echo "Repository checkout detected; reconstructing verified application sources…"
-  bash "$HERE/assemble-source.sh" "$APPDIR.new/exebridge.py" "$APPDIR.new/updater.py"
+  bash "$HERE/assemble-source.sh" "$APPDIR.new/exebridge.py" "$APPDIR.new/updater.py" "$APPDIR.new/webview2_helper.py"
   install -m 0644 "$HERE/exebridge.svg" "$APPDIR.new/exebridge.svg"
 else
   echo "ERROR: ExeBridge application payload is missing." >&2
@@ -73,10 +73,10 @@ fi
 printf '{\n  "app_id": "exebridge",\n  "version": "%s"\n}\n' "$VERSION" > "$APPDIR.new/version.json"
 rm -rf "$APPDIR"
 mv "$APPDIR.new" "$APPDIR"
-chmod 0755 "$APPDIR/exebridge.py" "$APPDIR/updater.py"
+chmod 0755 "$APPDIR/exebridge.py" "$APPDIR/updater.py" "$APPDIR/webview2_helper.py"
 
-# Preserve the stable 0.4 configuration, then adopt the settings/current prefix
-# from the tested 0.5 preview when it exists.
+# Preserve the stable configuration, then adopt compatible settings/current
+# prefix from the former preview install when it exists.
 /usr/bin/python3 - <<'PY'
 import json
 import shutil
@@ -98,7 +98,7 @@ def load(path):
 stable_cfg = load(stable_cfg_path)
 preview_cfg = load(preview_cfg_path)
 if preview_cfg:
-    for key in ('exe','mode','jp','ascii_bridge','wined3d','runner'):
+    for key in ('exe','mode','jp','ascii_bridge','wined3d','runner','webview2_mode'):
         if key in preview_cfg:
             stable_cfg[key] = preview_cfg[key]
 
@@ -114,8 +114,6 @@ if preview_cfg:
                     shutil.copytree(src, dest, symlinks=True)
                 stable_cfg['prefix'] = str(dest)
         except Exception:
-            # If the preview used a user-selected external prefix, preserve the
-            # path rather than copying or deleting anything.
             stable_cfg['prefix'] = str(src)
 
 stable_cfg_path.parent.mkdir(parents=True, exist_ok=True)
@@ -160,11 +158,12 @@ fi
 
 echo
 echo "========================================"
-echo " ExeBridge 0.5.1 installed"
+echo " ExeBridge 0.6.0 installed"
 echo "========================================"
-echo "Your existing stable prefixes/config were preserved."
+echo "Your existing prefixes/config/Known Good profiles were preserved."
+echo "WebView2 component support is now available per application."
 if [[ -d "$HOME/.local/share/exebridge-preview" ]]; then
-  echo "Your tested 0.5 preview settings were migrated where safe."
+  echo "Your tested preview settings were migrated where safe."
   echo "The preview install was left in place as a fallback."
 fi
 echo "Open ExeBridge from your application menu or run: $HOME/.local/bin/exebridge"

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.0 — WebView2 component support
+
+- Added built-in Microsoft Edge WebView2 dependency support.
+- Added per-app **Auto-detect**, **Required / ensure installed**, and **Disabled** WebView2 modes.
+- Added **Check WebView2** and **Install / Repair WebView2** controls.
+- Added prefix-aware WebView2 runtime detection for Wine and Proton `pfx/drive_c` layouts.
+- Added Microsoft Evergreen WebView2 bootstrapper download and prefix-targeted installation.
+- Added silent installation first with a visible-installer fallback when verification fails.
+- Added automatic pre-launch provisioning and retry when a selected app requires WebView2.
+- Added WebView2 mode persistence to Known Good profiles and desktop-shortcut restores.
+- Kept all 0.5.1 Known Good, desktop shortcut, legacy-game, Japanese/CP932, runner, and updater functionality.
+
 ## 0.5.1 — Known Good + desktop shortcuts restored
 
 - Restored **Mark Known Good** for saving working executable paths and compatibility profiles.

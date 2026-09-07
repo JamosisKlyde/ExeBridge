@@ -2,7 +2,7 @@
 set -euo pipefail
 
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-VERSION="0.5.1"
+VERSION="0.6.0"
 DISTRO_MODE=""
 MODE_EXPLICIT=0
 
@@ -149,4 +149,5 @@ echo " ExeBridge ${VERSION} is ready"
 echo "========================================"
 echo "Distribution mode: ${DISTRO_MODE}"
 echo "Existing prefixes, settings, Known Good profiles, and shortcuts were preserved."
+echo "WebView2 dependency support is available from each application's compatibility controls."
 echo "Open ExeBridge from your application menu or run: $HOME/.local/bin/exebridge"

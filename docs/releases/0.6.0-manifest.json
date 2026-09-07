@@ -1,0 +1,15 @@
+{
+  "version": "0.6.0",
+  "channel": "stable",
+  "source_sha256": {
+    "exebridge.py": "cb4139e71d3beec9ae79d26516082124c681da7699e43e25ee821a51f8ca415a",
+    "updater.py": "3ac90db850b164436ee621e503819e3fe0a3c694be54fa1167b6b19837f7de7b",
+    "webview2_helper.py": "3cebf6d05ea76e31ebeeab34973baeff227bd28470c05797491f9f3f93e25327"
+  },
+  "features": [
+    "WebView2 dependency auto-detection",
+    "prefix-aware WebView2 runtime verification",
+    "Evergreen WebView2 install/repair",
+    "Known Good WebView2 persistence"
+  ]
+}
