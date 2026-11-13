@@ -1,0 +1,25 @@
+name: Fedora 45 compatibility smoke test
+on:
+  push:
+    branches: [feature/fedora45-compatibility]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  fedora45:
+    runs-on: ubuntu-latest
+    container: fedora:45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Python and Qt dependencies
+        run: dnf install -y python3 python3-pyqt6 bash coreutils grep findutils gzip tar
+      - name: Check shell syntax
+        run: |
+          for script in install.sh install-or-update.sh bootstrap_umu.sh assemble-source.sh scripts/fedora45-doctor.sh; do
+            bash -n "$script"
+          done
+      - name: Validate packaged source manifests
+        run: |
+          bash assemble-source.sh /tmp/exebridge.py /tmp/updater.py /tmp/webview2_helper.py
+          python3 -m py_compile /tmp/exebridge.py /tmp/updater.py /tmp/webview2_helper.py
+      - name: Verify Fedora 45 diagnostic
+        run: bash scripts/fedora45-doctor.sh
