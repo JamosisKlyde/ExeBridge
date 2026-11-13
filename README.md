@@ -2,7 +2,7 @@
 
 > Run Windows `.exe` and `.msi` applications on Fedora, Ubuntu, and Arch Linux with Proton/UMU or Wine, including legacy Windows-game compatibility helpers.
 
-**Current stable version: 0.6.0**
+**Current stable version: 0.6.0**\n\n> **Fedora 45 compatibility work (unreleased):** See the `feature/fedora45-compatibility` branch. These changes are for validation and have not been published as a stable release.
 
 ExeBridge is a PyQt6 desktop front-end for launching Windows applications with isolated prefixes, selectable runners, legacy-game compatibility controls, saved Known Good configurations, desktop shortcuts, dependency helpers, and user-local updates.
 
@@ -35,7 +35,7 @@ For Windows applications that embed Microsoft Edge WebView2:
 
 WebView2 is a modern Windows component. ExeBridge can automate detection, download, prefix-targeted installation, verification, and retry handling, but Wine/Proton compatibility still varies by application.
 
-## Distribution support
+## Fedora 45 validation (development branch)\n\nFor existing installs, use the **read-only** diagnostic before attempting to update:\n\n```bash\nbash scripts/fedora45-doctor.sh\n```\n\nThe diagnostic checks the Fedora version, system PyQt6, installed Wine/UMU, helper commands, and 32-bit Mesa/Vulkan components. It also syntax-checks an existing ExeBridge installation without modifying prefixes. Missing Wine is a warning rather than an error because UMU/Proton can be used independently.\n\nThe development branch adds a Fedora 45 GitHub Actions smoke test covering script syntax, verified source reconstruction, Python compilation, and the host diagnostic. **Passing CI does not guarantee a Windows executable will run.** Real Fedora 45 KDE Wayland sessions, Wine/UMU/Proton, GUI launch, games, WebView2 and per-app prefixes still need end-to-end testing. Do not install the branch over a working setup until validated.\n\n## Distribution support
 
 The installer supports Fedora (`dnf`), Ubuntu (`apt`), and Arch (`pacman`). Fedora remains the default/fallback installer profile. Ubuntu enables i386 on x86-64, and Arch requires `[multilib]` for 32-bit compatibility packages.
 
