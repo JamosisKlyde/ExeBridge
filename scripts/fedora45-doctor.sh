@@ -50,7 +50,7 @@ if [[ "$(uname -m)" == "x86_64" && "$id" == "fedora" ]] && command -v rpm >/dev/
 fi
 app="$HOME/.local/share/exebridge/app/exebridge.py"
 if [[ -f "$app" ]]; then
-  if "$python_bin" -m py_compile "$app"; then ok "Installed ExeBridge Python source compiles"; else error "Installed ExeBridge source does not compile"; fi
+  if "$python_bin" -c 'import ast, pathlib, sys; ast.parse(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))' "$app"; then ok "Installed ExeBridge Python syntax parses"; else error "Installed ExeBridge Python syntax is invalid"; fi
 else warning "ExeBridge application has not been installed in the usual user-local location"; fi
 if [[ -n "${XDG_SESSION_TYPE:-}" ]]; then report INFO "Desktop session: $XDG_SESSION_TYPE"; fi
 report RESULT "$fail error(s), $warn warning(s)"
