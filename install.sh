@@ -73,7 +73,7 @@ echo
 install_fedora() {
     command -v dnf >/dev/null 2>&1 || { echo "ERROR: Fedora mode requires dnf." >&2; exit 1; }
     sudo dnf install -y python3-pyqt6 gamemode curl tar gzip unzip xdg-utils desktop-file-utils winetricks binutils
-    sudo dnf install -y bubblewrap || echo "WARNING: bubblewrap unavailable."
+    sudo dnf install -y bubblewrap || echo "WARNING: bubblewrap unavailable."\n    # Wine is a fallback runner, not a prerequisite for Proton-only configurations.\n    if ! command -v wine >/dev/null 2>&1; then\n        echo "INFO: Wine not installed; Proton/UMU mode remains available."\n        echo "      To enable system Wine fallback: sudo dnf install wine"\n    fi
     sudo dnf install -y glibc-langpack-ja || echo "WARNING: Japanese locale pack could not be installed automatically."
     if [[ "$(uname -m)" == "x86_64" ]]; then
         sudo dnf install -y mesa-vulkan-drivers.i686 mesa-dri-drivers.i686 vulkan-loader.i686 \
@@ -111,7 +111,7 @@ case "$DISTRO_MODE" in
     *) echo "ERROR: internal unsupported distro mode: $DISTRO_MODE" >&2; exit 1 ;;
 esac
 
-bash "$HERE/install-or-update.sh"
+bash "$HERE/install-or-update.sh"\n\nif [[ "$DISTRO_MODE" == "Fedora" && -f "$HERE/scripts/fedora45-doctor.sh" ]]; then\n    echo\n    echo "Running ExeBridge Fedora host diagnostic (non-fatal)…"\n    bash "$HERE/scripts/fedora45-doctor.sh" || echo "WARNING: Diagnostic found issues; review the report above."\nfi
 
 EXEBRIDGE_DISTRO_MODE="$DISTRO_MODE" EXEBRIDGE_DISTRO_EXPLICIT="$MODE_EXPLICIT" /usr/bin/python3 - <<'PYCFG'
 import json, os
