@@ -14,8 +14,9 @@ jobs:
         run: dnf install -y python3 python3-pyqt6 bash coreutils grep findutils gzip tar
       - name: Check shell syntax
         run: |
-          bash -n install.sh install-or-update.sh bootstrap_umu.sh
-          bash -n scripts/fedora45-doctor.sh
+          for script in install.sh install-or-update.sh bootstrap_umu.sh assemble-source.sh scripts/fedora45-doctor.sh; do
+            bash -n "$script"
+          done
       - name: Validate packaged source manifests
         run: |
           bash assemble-source.sh /tmp/exebridge.py /tmp/updater.py /tmp/webview2_helper.py
